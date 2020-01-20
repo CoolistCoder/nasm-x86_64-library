@@ -1,0 +1,10 @@
+BITS 64
+
+SECTION .text
+GLOBAL exit
+
+exit:
+	MOV		RAX, 60	;SYSTEM EXIT
+	MOV		RDI, 0	;RETURN CODE
+	SYSCALL			;POKE
+	ret

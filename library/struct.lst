@@ -1,0 +1,24 @@
+     1                                  
+     2                                  BITS 64
+     3                                  
+     4                                  SECTION .text
+     5                                  	GLOBAL	update_member
+     6                                  
+     7                                  update_member:
+     8 00000000 55                      	PUSH	RBP			;initiate the stack frame
+     9 00000001 4889E5                  	MOV		RBP, RSP
+    10                                  	
+    11 00000004 50                      	PUSH	RAX			;save the temporary registers
+    12 00000005 53                      	PUSH	RBX
+    13                                  	
+    14 00000006 488B4518                	MOV		RAX, [RBP+24]
+    15 0000000A 488B5D10                	MOV		RBX, [RBP+16]
+    16 0000000E 488918                  	MOV		[RAX], RBX
+    17 00000011 48894518                	MOV		[RBP+24], RAX
+    18                                  	
+    19 00000015 5B                      	POP		RBX			;restore the registers
+    20 00000016 58                      	POP		RAX
+    21                                  	
+    22 00000017 4889EC                  	MOV		RSP, RBP	;dismantle the stackframe
+    23 0000001A 5D                      	POP		RBP
+    24 0000001B C21000                  	RET		16			;return two parameters 

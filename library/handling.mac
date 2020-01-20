@@ -1,0 +1,18 @@
+;macros
+%MACRO pushall	0	;push all registers
+	PUSH	RAX
+	PUSH	RBX
+	PUSH	RCX
+	PUSH	RDX
+	PUSH	RSI
+	PUSH	RDI
+%ENDMACRO
+
+%MACRO	popall	0	;pop all registers
+	POP		RDI
+	POP		RSI
+	POP		RDX
+	POP		RCX
+	POP		RBX
+	POP		RAX
+%ENDMACRO

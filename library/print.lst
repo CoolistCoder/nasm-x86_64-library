@@ -1,0 +1,289 @@
+     1                                  
+     2                                  BITS 64
+     3                                  
+     4                                  SECTION .data
+     5                                  	SYS_WRITE	equ 1
+     6                                  
+     7                                  SECTION .text
+     8                                  	GLOBAL strlen
+     9                                  	GLOBAL print
+    10                                  	GLOBAL printful
+    11                                  	GLOBAL newline
+    12                                  	GLOBAL printchar
+    13                                  	GLOBAL printnum
+    14                                  	GLOBAL printint
+    15                                  	GLOBAL printsint
+    16                                  
+    17                                  strlen:
+    18 00000000 55                      	PUSH	RBP			;save base pointer
+    19 00000001 4889E5                  	MOV		RBP, RSP	;create stack frame
+    20                                  	
+    21 00000004 56                      	PUSH	RSI			;save RSI
+    22                                  	
+    23 00000005 488B7510                	MOV		RSI, [RBP+16]	;move the message into RSI
+    24 00000009 4831C0                  	XOR		RAX, RAX		;set RAX to 0
+    25                                  	
+    26                                  	__strlen_count:			;accumulation loop
+    27 0000000C 803E00                  		CMP	BYTE [RSI], 0h	;compare a character of the message to 0
+    28 0000000F 7408                    		JE	__strlen_count_break	;jump if the byte is 0
+    29                                  		
+    30 00000011 48FFC0                  		INC		RAX				;add 1 to RAX
+    31 00000014 48FFC6                  		INC		RSI				;go to next character in message
+    32 00000017 EBF3                    		JMP		__strlen_count	;jump to the top of the loop
+    33                                  	__strlen_count_break:		;break the loop
+    34                                  	
+    35 00000019 48C7451000000000        	MOV		QWORD [RBP+16], 0			;delete the data stored in the stack
+    36                                  	
+    37 00000021 5E                      	POP		RSI					;restore RSI
+    38                                  	
+    39 00000022 4889EC                  	MOV		RSP, RBP	;dismantle stack frame
+    40 00000025 5D                      	POP		RBP			;restore base pointer
+    41 00000026 C20800                  	RET	8
+    42                                  	
+    43                                  print:
+    44 00000029 55                      	PUSH	RBP			;save base pointer
+    45 0000002A 4889E5                  	MOV		RBP, RSP	;create stack frame
+    46                                  	
+    47                                  	;push all temporary registers
+    48 0000002D 56                      	PUSH	RSI
+    49 0000002E 52                      	PUSH	RDX
+    50 0000002F 57                      	PUSH	RDI
+    51 00000030 50                      	PUSH	RAX
+    52                                  
+    53 00000031 488B7518                	MOV		RSI, [RBP+24]	;move message into RSI
+    54 00000035 488B5510                	MOV		RDX, [RBP+16]	;move message length into RDX
+    55 00000039 B801000000              	MOV		RAX, SYS_WRITE			;SYSTEM WRITE
+    56 0000003E 4889C7                  	MOV		RDI, RAX		;destination to RAX
+    57 00000041 0F05                    	SYSCALL					;POKE
+    58                                  	
+    59 00000043 48C7451800000000        	MOV		QWORD [RBP+24], 0		;delete the message
+    60 0000004B 48C7451000000000        	MOV		QWORD [RBP+16], 0		;delete the length of the message
+    61                                  
+    62                                  	;pop all temporary registers
+    63 00000053 58                      	POP		RAX
+    64 00000054 5F                      	POP		RDI
+    65 00000055 5A                      	POP		RDX
+    66 00000056 5E                      	POP		RSI
+    67                                  	
+    68 00000057 4889EC                  	MOV		RSP, RBP	;dismantle stack frame
+    69 0000005A 5D                      	POP		RBP			;restore base pointer
+    70 0000005B C21000                  	RET 16
+    71                                  	
+    72                                  printful:
+    73 0000005E 55                      	PUSH	RBP			;save base pointer
+    74 0000005F 4889E5                  	MOV		RBP, RSP	;create stack frame
+    75                                  	
+    76 00000062 FF7510                  	PUSH	QWORD [RBP+16]	;push the message
+    77 00000065 E896FFFFFF              	CALL	strlen		;get the length of the string
+    78 0000006A FF7510                  	PUSH	QWORD [RBP+16]	;push the message again
+    79 0000006D 50                      	PUSH	RAX			;push the string's length
+    80 0000006E E8B6FFFFFF              	CALL	print		;print the message
+    81                                  	
+    82 00000073 48C7451000000000        	MOV		QWORD [RBP+16], 0	;delete argument
+    83                                  
+    84 0000007B 4889EC                  	MOV		RSP, RBP	;dismantle stack frame
+    85 0000007E 5D                      	POP		RBP			;restore base pointer
+    86 0000007F C20800                  	ret 8
+    87                                  
+    88                                  printchar:
+    89 00000082 55                      	PUSH	RBP			;save base pointer
+    90 00000083 4889E5                  	MOV		RBP, RSP	;create stack frame
+    91                                  	
+    92                                  	;push all temporary registers
+    93 00000086 56                      	PUSH	RSI
+    94 00000087 52                      	PUSH	RDX
+    95 00000088 57                      	PUSH	RDI
+    96 00000089 50                      	PUSH	RAX
+    97                                  
+    98 0000008A 488D7510                	LEA		RSI, [RBP+16]	;move message into RSI
+    99 0000008E BA01000000              	MOV		RDX, 1	;move message length into RDX
+   100 00000093 B801000000              	MOV		RAX, SYS_WRITE			;SYSTEM WRITE
+   101 00000098 4889C7                  	MOV		RDI, RAX		;destination to RAX
+   102 0000009B 0F05                    	SYSCALL					;POKE
+   103                                  	
+   104 0000009D 48C7451000000000        	MOV		QWORD [RBP+16], 0	;delete argument
+   105                                  	
+   106                                  	;pop all temporary registers
+   107 000000A5 58                      	POP		RAX
+   108 000000A6 5F                      	POP		RDI
+   109 000000A7 5A                      	POP		RDX
+   110 000000A8 5E                      	POP		RSI
+   111                                  	
+   112 000000A9 4889EC                  	MOV		RSP, RBP	;dismantle stack frame
+   113 000000AC 5D                      	POP		RBP			;restore base pointer
+   114 000000AD C20800                  	ret 	8
+   115                                  	
+   116                                  newline:
+   117 000000B0 55                      	PUSH	RBP			;save base pointer
+   118 000000B1 4889E5                  	MOV		RBP, RSP	;create stack frame
+   119 000000B4 4883EC08                	SUB		RSP, 8		;two local variables
+   120 000000B8 C645000A                	MOV		[RBP], BYTE 0ah	;new line
+   121                                  	
+   122                                  	;push all temporary registers
+   123 000000BC 56                      	PUSH	RSI
+   124 000000BD 52                      	PUSH	RDX
+   125 000000BE 57                      	PUSH	RDI
+   126 000000BF 50                      	PUSH	RAX
+   127                                  	
+   128 000000C0 488D7500                	LEA		RSI, [RBP]	;move newline into RSI
+   129 000000C4 BA01000000              	MOV		RDX, 1	;move message length into RDX
+   130 000000C9 B801000000              	MOV		RAX, SYS_WRITE			;SYSTEM WRITE
+   131 000000CE 4889C7                  	MOV		RDI, RAX		;destination to RAX
+   132 000000D1 0F05                    	SYSCALL					;POKE
+   133                                  	
+   134                                  	;pop all temporary registers
+   135 000000D3 58                      	POP		RAX
+   136 000000D4 5F                      	POP		RDI
+   137 000000D5 5A                      	POP		RDX
+   138 000000D6 5E                      	POP		RSI
+   139                                  	
+   140 000000D7 4889EC                  	MOV		RSP, RBP	;dismantle stack frame
+   141 000000DA 5D                      	POP		RBP			;restore base pointer
+   142 000000DB C3                      	ret 	
+   143                                  
+   144                                  printnum:
+   145 000000DC 55                      	PUSH	RBP			;save base pointer
+   146 000000DD 4889E5                  	MOV		RBP, RSP	;create stack frame
+   147                                  	
+   148                                  	;push all temporary registers
+   149 000000E0 56                      	PUSH	RSI
+   150 000000E1 52                      	PUSH	RDX
+   151 000000E2 57                      	PUSH	RDI	
+   152 000000E3 51                      	PUSH	RCX
+   153 000000E4 50                      	PUSH	RAX
+   154                                  	
+   155 000000E5 488B4D10                	MOV		RCX, [RBP+16]	;get the original value of the pushed number
+   156 000000E9 4883451030              	ADD		QWORD [RBP+16], 30h	;test with single digit
+   157 000000EE 488D7510                	LEA		RSI, [RBP+16]	;move newline into RSI
+   158 000000F2 BA01000000              	MOV		RDX, 1	;move message length into RDX
+   159 000000F7 B801000000              	MOV		RAX, SYS_WRITE			;SYSTEM WRITE
+   160 000000FC 4889C7                  	MOV		RDI, RAX		;destination to RAX
+   161 000000FF 0F05                    	SYSCALL					;POKE
+   162                                  	
+   163 00000101 48C7451000000000        	MOV		QWORD [RBP+16], 0	;delete argument
+   164                                  	
+   165                                  	;pop all temporary registers
+   166 00000109 58                      	POP		RAX
+   167 0000010A 59                      	POP		RCX
+   168 0000010B 5F                      	POP		RDI
+   169 0000010C 5A                      	POP		RDX
+   170 0000010D 5E                      	POP		RSI
+   171                                  
+   172 0000010E 4889EC                  	MOV		RSP, RBP	;dismantle stack frame
+   173 00000111 5D                      	POP		RBP			;restore base pointer
+   174 00000112 C20800                  	ret 8
+   175                                  	
+   176                                  printint:
+   177 00000115 55                      	PUSH	RBP			;save base pointer
+   178 00000116 4889E5                  	MOV		RBP, RSP	;create stack frame
+   179                                  	
+   180 00000119 53                      	PUSH	RBX			;save registers
+   181 0000011A 50                      	PUSH	RAX
+   182 0000011B 51                      	PUSH	RCX
+   183 0000011C 52                      	PUSH	RDX
+   184                                  	
+   185 0000011D 48837D1000              	CMP		QWORD [RBP+16], 0
+   186 00000122 7507                    	JNE		__printint_normal
+   187 00000124 6A00                    	PUSH	0
+   188 00000126 E8B1FFFFFF              	CALL	printnum
+   189                                  	__printint_normal:
+   190                                  	
+   191 0000012B BB0A000000              	MOV		RBX, 10			;value to divide by
+   192 00000130 488B4510                	MOV		RAX, [RBP+16]	;move the number into RAX
+   193                                  	
+   194 00000134 4831C9                  	XOR		RCX, RCX		;this is going to be the incrementor
+   195                                  	
+   196                                  	__printint_loop:		;loop to print numbers
+   197 00000137 4883F800                	CMP		RAX, 0
+   198 0000013B 740C                    	JE		__printint_loop_break	;break
+   199                                  	
+   200 0000013D 48F7F3                  	DIV		RBX						;divide RAX by 10
+   201 00000140 48FFC1                  	INC		RCX						;increment RCX
+   202 00000143 52                      	PUSH	RDX						;push the mod value to stack
+   203 00000144 4831D2                  	XOR		RDX, RDX				;clear out RDX
+   204 00000147 EBEE                    	JMP		__printint_loop			;jump to the top of the loop
+   205                                  	__printint_loop_break:
+   206                                  	
+   207 00000149 4883F900                	CMP		RCX, 0					;if there was nothing pushed
+   208 0000014D 7407                    	JE		__printPrintint_loop_ignore	;prevent the loop from occuring
+   209                                  	
+   210                                  	__printPrintint_loop:			;the loop where printing occurs
+   211                                  		
+   212 0000014F E888FFFFFF              		CALL	printnum
+   213 00000154 E2F9                    		LOOP	__printPrintint_loop	;loop back to printloop
+   214                                  	
+   215                                  	__printPrintint_loop_ignore:
+   216                                  	
+   217 00000156 48C7451000000000        	MOV		QWORD [RBP+16], 0	;delete argument
+   218                                  	
+   219 0000015E 5A                      	POP		RDX
+   220 0000015F 59                      	POP		RCX
+   221 00000160 58                      	POP		RAX
+   222 00000161 5B                      	POP		RBX			;restore registers
+   223                                  
+   224 00000162 4889EC                  	MOV		RSP, RBP	;dismantle stack frame
+   225 00000165 5D                      	POP		RBP			;restore base pointer
+   226 00000166 C20800                  	ret 8
+   227                                  	
+   228                                  printsint:
+   229 00000169 55                      	PUSH	RBP			;save base pointer
+   230 0000016A 4889E5                  	MOV		RBP, RSP	;create stack frame
+   231                                  	
+   232 0000016D 53                      	PUSH	RBX			;save registers
+   233 0000016E 50                      	PUSH	RAX
+   234 0000016F 51                      	PUSH	RCX
+   235 00000170 52                      	PUSH	RDX
+   236                                  	
+   237 00000171 48837D1000              	CMP		QWORD [RBP+16], 0
+   238 00000176 7507                    	JNE		__printsint_normal
+   239 00000178 6A00                    	PUSH	0
+   240 0000017A E85DFFFFFF              	CALL	printnum
+   241                                  	__printsint_normal:
+   242                                  	
+   243 0000017F BB0A000000              	MOV		RBX, 10			;value to divide by
+   244 00000184 488B4510                	MOV		RAX, [RBP+16]	;move the number into RAX
+   245                                  	
+   246                                  	;need to modify RAX to make the number legible
+   247 00000188 4883F800                	CMP		RAX, 0
+   248 0000018C 7D0D                    	JGE	__printsint_neg_ignore
+   249                                  	
+   250 0000018E 6A2D                    	PUSH	"-"
+   251 00000190 E8EDFEFFFF              	CALL	printchar
+   252 00000195 48F7D0                  	NOT		RAX
+   253 00000198 48FFC0                  	INC		RAX
+   254                                  	
+   255                                  	__printsint_neg_ignore:	;ignore the negation if not negative
+   256                                  	
+   257 0000019B 4831C9                  	XOR		RCX, RCX		;this is going to be the incrementor
+   258                                  	
+   259                                  	__printsint_loop:		;loop to print numbers
+   260 0000019E 4883F800                	CMP		RAX, 0
+   261 000001A2 740C                    	JE		__printsint_loop_break	;break
+   262                                  	
+   263 000001A4 48F7F3                  	DIV		RBX						;divide RAX by 10
+   264 000001A7 48FFC1                  	INC		RCX						;increment RCX
+   265 000001AA 52                      	PUSH	RDX						;push the mod value to stack
+   266 000001AB 4831D2                  	XOR		RDX, RDX				;clear out RDX
+   267 000001AE EBEE                    	JMP		__printsint_loop			;jump to the top of the loop
+   268                                  	__printsint_loop_break:
+   269                                  	
+   270 000001B0 4883F900                	CMP		RCX, 0					;if there was nothing pushed
+   271 000001B4 7407                    	JE		__printPrintsint_loop_ignore	;prevent the loop from occuring
+   272                                  	
+   273                                  	__printPrintsint_loop:			;the loop where printing occurs
+   274                                  		
+   275 000001B6 E821FFFFFF              		CALL	printnum
+   276 000001BB E2F9                    		LOOP	__printPrintsint_loop	;loop back to printloop
+   277                                  	
+   278                                  	__printPrintsint_loop_ignore:
+   279                                  	
+   280 000001BD 48C7451000000000        	MOV		QWORD [RBP+16], 0	;delete argument
+   281                                  	
+   282 000001C5 5A                      	POP		RDX
+   283 000001C6 59                      	POP		RCX
+   284 000001C7 58                      	POP		RAX
+   285 000001C8 5B                      	POP		RBX			;restore registers
+   286                                  
+   287 000001C9 4889EC                  	MOV		RSP, RBP	;dismantle stack frame
+   288 000001CC 5D                      	POP		RBP			;restore base pointer
+   289 000001CD C20800                  	ret 8

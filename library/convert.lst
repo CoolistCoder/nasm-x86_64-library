@@ -1,0 +1,84 @@
+     1                                  BITS 64
+     2                                  
+     3                                  %INCLUDE "print.inc"
+     4                              <1> ;functions created for the purpose of printing
+     5                              <1> 
+     6                              <1> extern strlen
+     7                              <1> extern print
+     8                              <1> extern printful
+     9                              <1> extern newline
+    10                              <1> extern printchar
+    11                              <1> extern printnum
+    12                              <1> extern printint
+    13                              <1> extern printsint
+    14                                  
+    15                                  SECTION .text
+    16                                  	GLOBAL strint
+    17                                  
+    18                                  strint:
+    19 00000000 55                      	PUSH	RBP
+    20 00000001 4889E5                  	MOV		RBP, RSP
+    21                                  	
+    22                                  	;push all temporary registers
+    23                                  
+    24 00000004 51                      	PUSH	RCX
+    25 00000005 52                      	PUSH	RDX
+    26 00000006 56                      	PUSH	RSI
+    27                                  	
+    28 00000007 4831DB                  	XOR		RBX, RBX		;reset RBX
+    29 0000000A 488B7510                	MOV		RSI, [RBP+16]	;move the number string into RSI
+    30 0000000E 56                      	PUSH	RSI				;get the length of the string
+    31 0000000F E8(00000000)            	CALL	strlen
+    32 00000014 4889C1                  	MOV		RCX, RAX		;move the strlen value into RCX
+    33 00000017 4831DB                  	XOR		RBX, RBX		;RBX will perform operations on the bytes
+    34 0000001A 4831D2                  	XOR		RDX, RDX		;RDX will hold multiples of 10
+    35 0000001D BA01000000              	MOV		RDX, 1			;start RDX with 1 and multiply by 10 each time
+    36 00000022 4831C0                  	XOR		RAX, RAX		;RAX will be the result
+    37                                  	
+    38                                  	__strint_loop:
+    39 00000025 480FB65C0EFF            		MOVZX	RBX, BYTE [RSI + RCX -1]	;move the character of RSI into RAX
+    40                                  		
+    41 0000002B 4883FB2D                		CMP		RBX, "-"		;if the value turns out negative
+    42 0000002F 7436                    		JE		__strint_neg	;handle it
+    43 00000031 4883FB2F                		CMP		RBX, 2Fh		;if RBX is less than the desired range
+    44 00000035 7E35                    		JLE		__strint_cancel	;finish
+    45 00000037 4883FB3A                		CMP		RBX, 3Ah		;if RBX is greater than the desired range
+    46 0000003B 7D2F                    		JGE		__strint_cancel ;finish
+    47                                  
+    48 0000003D 4883EB30                		SUB		RBX, 30h		;take the ascii value to an integer
+    49 00000041 50                      		PUSH	RAX				;make sure RAX is saved
+    50 00000042 4889D8                  		MOV		RAX, RBX		;MOV the value into RAX
+    51 00000045 52                      		PUSH	RDX				;save RDX
+    52 00000046 48F7E2                  		MUL		RDX				;x^10
+    53 00000049 5A                      		POP		RDX				;restore RDX
+    54 0000004A 4889C3                  		MOV		RBX, RAX		;MOV the value back into RBX
+    55 0000004D 58                      		POP		RAX				;restore RAX
+    56 0000004E 4801D8                  		ADD		RAX, RBX		;add the value in RBX to RAX
+    57 00000051 50                      		PUSH	RAX				;save RAX again
+    58 00000052 53                      		PUSH	RBX				;save RBX to store 10
+    59 00000053 BB0A000000              		MOV		RBX, 10			;move 10 into RBX
+    60 00000058 4889D0                  		MOV		RAX, RDX		;move RDX into RAX
+    61 0000005B 48F7E3                  		MUL		RBX				;I need to mul by 10
+    62 0000005E 4889C2                  		MOV		RDX, RAX		;move the new value back into RAX
+    63 00000061 5B                      		POP		RBX				;pop RBX back
+    64 00000062 58                      		POP		RAX				;pop RAX back
+    65 00000063 E2C0                    	LOOP	__strint_loop	;loop 
+    66 00000065 EB11                    	JMP		__strint_finish
+    67                                  	__strint_neg:			;the number was negative
+    68 00000067 48F7D8                  	NEG		RAX				;turn RAX negative
+    69 0000006A EB0C                    	JMP		__strint_finish	;jump to finish
+    70                                  	__strint_cancel:
+    71 0000006C 48C7C3FFFFFFFF          	MOV		RBX, -1			;failure core
+    72 00000073 B800000000              	MOV		RAX, 0			;cancel out value if 
+    73                                  	__strint_finish:		;function is finished
+    74                                  	
+    75 00000078 48C7451000000000        	MOV		QWORD [RBP+16], 0	;delete argument
+    76                                  	
+    77                                  	;restore temporary registers
+    78 00000080 5E                      	POP		RSI
+    79 00000081 5A                      	POP		RDX
+    80 00000082 59                      	POP		RCX
+    81                                  	
+    82 00000083 4889EC                  	MOV		RSP, RBP
+    83 00000086 5D                      	POP		RBP
+    84 00000087 C20800                  	ret		8

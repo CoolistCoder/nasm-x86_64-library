@@ -1,0 +1,10 @@
+     1                                  BITS 64
+     2                                  
+     3                                  SECTION .text
+     4                                  GLOBAL exit
+     5                                  
+     6                                  exit:
+     7 00000000 B83C000000              	MOV		RAX, 60	;SYSTEM EXIT
+     8 00000005 BF00000000              	MOV		RDI, 0	;RETURN CODE
+     9 0000000A 0F05                    	SYSCALL			;POKE
+    10 0000000C C3                      	ret

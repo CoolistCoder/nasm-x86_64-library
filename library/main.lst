@@ -1,0 +1,138 @@
+     1                                  %INCLUDE "handling.mac"
+     2                              <1> ;macros
+     3                              <1> %MACRO pushall	0	;push all registers
+     4                              <1> 	PUSH	RAX
+     5                              <1> 	PUSH	RBX
+     6                              <1> 	PUSH	RCX
+     7                              <1> 	PUSH	RDX
+     8                              <1> 	PUSH	RSI
+     9                              <1> 	PUSH	RDI
+    10                              <1> %ENDMACRO
+    11                              <1> 
+    12                              <1> %MACRO	popall	0	;pop all registers
+    13                              <1> 	POP		RDI
+    14                              <1> 	POP		RSI
+    15                              <1> 	POP		RDX
+    16                              <1> 	POP		RCX
+    17                              <1> 	POP		RBX
+    18                              <1> 	POP		RAX
+    19                              <1> %ENDMACRO
+    20                                  %INCLUDE "print.inc"
+    21                              <1> ;functions created for the purpose of printing
+    22                              <1> 
+    23                              <1> extern strlen
+    24                              <1> extern print
+    25                              <1> extern printful
+    26                              <1> extern newline
+    27                              <1> extern printchar
+    28                              <1> extern printnum
+    29                              <1> extern printint
+    30                              <1> extern printsint
+    31                                  %INCLUDE "struct.inc"
+    32                              <1> ;functions created for the purpose of handling structures
+    33                              <1> 
+    34                              <1> extern update_member
+    35                                  %INCLUDE "convert.inc"
+    36                              <1> ;functions for number conversions
+    37                              <1> 
+    38                              <1> extern strint
+    39                                  %INCLUDE "input.inc"
+    40                              <1> ;functions for accepting user input
+    41                              <1> 
+    42                              <1> extern input
+    43                                  %INCLUDE "handling.inc"
+    44                              <1> ;functions for handling assembly code
+    45                              <1> 
+    46                              <1> extern exit
+    47                                  
+    48                                  struc	mystruct
+    49 00000000 <res 00000008>          	.xpos	resq	1
+    50 00000008 <res 00000008>          	.ypos	resq	1
+    51                                  endstruc
+    52                                  
+    53                                  ;data segment
+    54                                  SECTION .data
+    55 00000000 506C6561736520696E-     	nameprompt	db	"Please insert your name >> ", 0h
+    56 00000009 7365727420796F7572-
+    57 00000012 206E616D65203E3E20-
+    58 0000001B 00                 
+    59 0000001C 506C65617365206769-     	quantprompt db	"Please give me a numbered value: ", 0h
+    60 00000025 7665206D652061206E-
+    61 0000002E 756D62657265642076-
+    62 00000037 616C75653A2000     
+    63 0000003E 5468652076616C7565-     	mymsg	db	"The value you inserted is: ", 0h
+    64 00000047 20796F7520696E7365-
+    65 00000050 727465642069733A20-
+    66 00000059 00                 
+    67 0000005A 2100                    	myend	db	"!", 0h
+    68 0000005C 00                      	myname	db	0
+    69                                  	
+    70 0000005D 2D313534                	mynum	db "-154"
+    71                                  	
+    72 00000061 71756974                	quitval	db	"quit"
+    73                                  	
+    74 00000065 76616C756520697320-     	errmsg db "value is not valid", 0ah, 0h
+    75 0000006E 6E6F742076616C6964-
+    76 00000077 0A00               
+    77                                  
+    78                                  ;reserved memory segment
+    79                                  SECTION .bss
+    80 00000000 <res 00000010>          	structure	resq	2
+    81 00000010 <res 00000010>          	altstruct	resq	2
+    82 00000020 <res 00000001>          	buffer		resb	1
+    83                                  	
+    84                                  
+    85                                  ;program
+    86                                  SECTION .text
+    87                                  GLOBAL	_start
+    88                                  _start:
+    89 00000000 90                      	NOP
+    90                                  		pushall
+    91 00000001 50                  <1>  PUSH RAX
+    92 00000002 53                  <1>  PUSH RBX
+    93 00000003 51                  <1>  PUSH RCX
+    94 00000004 52                  <1>  PUSH RDX
+    95 00000005 56                  <1>  PUSH RSI
+    96 00000006 57                  <1>  PUSH RDI
+    97                                  		
+    98                                  
+    99                                  		
+   100                                  		myloop:
+   101 00000007 68[1C000000]            		push	quantprompt	;print the message
+   102 0000000C E8(00000000)            		call	printful
+   103                                  		
+   104 00000011 68[20000000]            		push	buffer	;input
+   105 00000016 68F4010000              		push	500
+   106 0000001B E8(00000000)            		call	input
+   107                                  		
+   108 00000020 53                      		push	rbx
+   109 00000021 68[20000000]            		push	buffer
+   110 00000026 E8(00000000)            		call	strint
+   111                                  		
+   112 0000002B 4883FB00                		cmp		rbx, 0
+   113 0000002F 7C18                    		jl		inputerror
+   114                                  		
+   115 00000031 5B                      		pop		rbx
+   116 00000032 50                      		push	rax
+   117 00000033 E8(00000000)            		call	printsint
+   118 00000038 E8(00000000)            		call	newline
+   119                                  		
+   120                                  		popall
+   121 0000003D 5F                  <1>  POP RDI
+   122 0000003E 5E                  <1>  POP RSI
+   123 0000003F 5A                  <1>  POP RDX
+   124 00000040 59                  <1>  POP RCX
+   125 00000041 5B                  <1>  POP RBX
+   126 00000042 58                  <1>  POP RAX
+   127 00000043 90                      	NOP
+   128 00000044 E8(00000000)            call	exit
+   129                                  	
+   130                                  
+   131                                  inputerror:
+   132 00000049 5B                      	pop		rbx
+   133 0000004A 68[65000000]            	push	errmsg
+   134 0000004F E8(00000000)            	call	printful
+   135 00000054 EBB1                    	jmp		myloop
+   136                                  
+   137                                  
+   138                                  

@@ -1,0 +1,102 @@
+     1                                  BITS 64
+     2                                  
+     3                                  %INCLUDE "handling.mac"
+     4                              <1> ;macros
+     5                              <1> %MACRO pushall	0	;push all registers
+     6                              <1> 	PUSH	RAX
+     7                              <1> 	PUSH	RBX
+     8                              <1> 	PUSH	RCX
+     9                              <1> 	PUSH	RDX
+    10                              <1> 	PUSH	RSI
+    11                              <1> 	PUSH	RDI
+    12                              <1> %ENDMACRO
+    13                              <1> 
+    14                              <1> %MACRO	popall	0	;pop all registers
+    15                              <1> 	POP		RDI
+    16                              <1> 	POP		RSI
+    17                              <1> 	POP		RDX
+    18                              <1> 	POP		RCX
+    19                              <1> 	POP		RBX
+    20                              <1> 	POP		RAX
+    21                              <1> %ENDMACRO
+    22                                  
+    23                                  SECTION .text
+    24                                  	GLOBAL input
+    25                                  
+    26                                  clear_buffer:
+    27 00000000 55                      	PUSH	RBP			;initiate the stack frame
+    28 00000001 4889E5                  	MOV		RBP, RSP
+    29                                  	
+    30 00000004 50                      	PUSH	RAX			;save RAX
+    31                                  	
+    32 00000005 488B4518                	MOV		RAX, [RBP+24]	;move the buffer into RAX
+    33 00000009 488B4D10                	MOV		RCX, [RBP+16]	;move the buffer length into RCX
+    34                                  	
+    35                                  	__input_clear_buffer_first:	;loop to clear the buffer
+    36 0000000D C60000                  		MOV	BYTE[RAX], 0	;move 0 into a byte of RAX
+    37 00000010 48FFC0                  		INC	RAX				;increment RAX
+    38 00000013 E2F8                    	LOOP	__input_clear_buffer_first	;loop
+    39                                  	
+    40 00000015 48C7451800000000        	MOV		QWORD [RBP+24], 0		;delete the arguments
+    41 0000001D 48C7451000000000        	MOV		QWORD [RBP+16], 0
+    42                                  	
+    43 00000025 58                      	POP		RAX			;restore RAX
+    44                                  	
+    45 00000026 4889EC                  	MOV		RSP, RBP	;dismantle the stack frame
+    46 00000029 5D                      	POP		RBP
+    47 0000002A C21000                  	RET		16
+    48                                  
+    49                                  input:
+    50 0000002D 55                      	PUSH	RBP
+    51 0000002E 4889E5                  	MOV		RBP, RSP
+    52                                  	
+    53                                  	;save the registers
+    54                                  	pushall
+    55 00000031 50                  <1>  PUSH RAX
+    56 00000032 53                  <1>  PUSH RBX
+    57 00000033 51                  <1>  PUSH RCX
+    58 00000034 52                  <1>  PUSH RDX
+    59 00000035 56                  <1>  PUSH RSI
+    60 00000036 57                  <1>  PUSH RDI
+    61                                  	
+    62 00000037 FF7518                  	PUSH	QWORD [RBP+24]	;push the buffer
+    63 0000003A FF7510                  	PUSH	QWORD [RBP+16]	;push the buffer's length	
+    64 0000003D E8BEFFFFFF              	CALL	clear_buffer	;clear the buffer
+    65                                  	
+    66                                  	__input_forcevalue:
+    67                                  	
+    68 00000042 B800000000              	MOV		RAX, 0		;move the SYS_READ call into RAX
+    69 00000047 488B7518                	MOV		RSI, [RBP+24]	;move the clean buffer into RSI
+    70 0000004B 488B5510                	MOV		RDX, [RBP+16]	;move the buffer size into RDX
+    71 0000004F 4889C7                  	MOV		RDI, RAX		;move RAX into destination
+    72 00000052 0F05                    	SYSCALL				;POKE
+    73                                  	
+    74 00000054 4883F801                	CMP		RAX, 1		;if RAX is 0
+    75 00000058 74E8                    	JE		__input_forcevalue	;redo the input
+    76                                  	
+    77                                  	
+    78 0000005A 488B7518                	MOV		RSI, [RBP+24]	;move the buffer into RSI
+    79                                  	__input_find_newline:
+    80 0000005E 803E0A                  	CMP		BYTE [RSI], 0ah	;compare a byte of RSI to newline
+    81 00000061 7405                    	JE		__input_delete_newline	;delete the newline character
+    82 00000063 48FFC6                  	INC		RSI				;add 1 to RSI
+    83 00000066 EBF6                    	JMP		__input_find_newline	;loop
+    84                                  	__input_delete_newline:
+    85 00000068 C60600                  	MOV		BYTE [RSI], 0	;replace the newline value with 0
+    86                                  
+    87                                  	
+    88 0000006B 48C7451800000000        	MOV		QWORD [RBP+24], 0		;delete the arguments
+    89 00000073 48C7451000000000        	MOV		QWORD [RBP+16], 0
+    90                                  	
+    91                                  	popall
+    92 0000007B 5F                  <1>  POP RDI
+    93 0000007C 5E                  <1>  POP RSI
+    94 0000007D 5A                  <1>  POP RDX
+    95 0000007E 59                  <1>  POP RCX
+    96 0000007F 5B                  <1>  POP RBX
+    97 00000080 58                  <1>  POP RAX
+    98                                  	
+    99 00000081 4889EC                  	MOV		RSP, RBP
+   100 00000084 5D                      	POP		RBP
+   101 00000085 C21000                  	RET		16
+   102                                  	
